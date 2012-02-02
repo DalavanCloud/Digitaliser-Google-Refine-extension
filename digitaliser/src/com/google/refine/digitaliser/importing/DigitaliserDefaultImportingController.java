@@ -57,6 +57,7 @@ import com.google.refine.commands.column.AddColumnByFetchingURLsCommand;
 import com.google.refine.commands.column.AddColumnCommand;
 import com.google.refine.commands.project.GetProjectMetadataCommand;
 
+import com.google.refine.importing.DefaultImportingController;
 import com.google.refine.importing.ImportingController;
 import com.google.refine.importing.ImportingJob;
 import com.google.refine.importing.ImportingManager;
@@ -68,95 +69,8 @@ import com.google.refine.operations.column.ColumnAdditionOperation;
 import com.google.refine.util.JSONUtilities;
 import com.google.refine.util.ParsingUtilities;
 
-public class DigitaliserDefaultImportingController implements
-		ImportingController {
+public class DigitaliserDefaultImportingController extends DefaultImportingController {
 
-	protected RefineServlet servlet;
-
-	@Override
-	public void init(RefineServlet servlet) {
-		this.servlet = servlet;
-	}
-
-	@Override
-	public void doGet(HttpServletRequest request, HttpServletResponse response)
-			throws ServletException, IOException {
-		// TODO Auto-generated method stub
-	}
-
-	@Override
-	public void doPost(HttpServletRequest request, HttpServletResponse response)
-			throws ServletException, IOException {
-
-		Properties parameters = ParsingUtilities.parseUrlParameters(request);
-		String subCommand = parameters.getProperty("subCommand");
-		if ("create-project".equals(subCommand)) {
-			doCreateProject(request, response, parameters);
-		} else
-		if("save-url".equals(subCommand)){
-			doSaveURLpattern(request, response, parameters);
-		}
-		else
-		{
-			HttpUtilities.respond(response, "error", "No such sub command");
-		}
-	}
-
-	private void doSaveURLpattern(HttpServletRequest request,
-			HttpServletResponse response, Properties parameters) throws IOException {
-
-		long jobID = Long.parseLong(parameters.getProperty("jobID"));
-		ImportingJob job = ImportingManager.getJob(jobID);
-		if (job == null) {
-			HttpUtilities.respond(response, "error", "No such import job");
-			return;
-		}
-
-	   
-		ProjectMetadata pm = ProjectManager.singleton.getProjectMetadata(job.project.id);
-		pm.setCustomMetadata("urlpattern", request.getParameter("urlpattern"));
-		ProjectManager.singleton.ensureProjectSaved(job.project.id);			
-			
-		HttpUtilities.respond(response, "ok", "done");
-	}
-
-	private void doCreateProject(HttpServletRequest request,
-			HttpServletResponse response, Properties parameters)
-			throws ServletException, IOException {
-
-		long jobID = Long.parseLong(parameters.getProperty("jobID"));
-		ImportingJob job = ImportingManager.getJob(jobID);
-		if (job == null) {
-			HttpUtilities.respond(response, "error", "No such import job");
-			return;
-		}
-
-		job.updating = true;
-		job.touch();
-		try {
-			JSONObject config = job.getOrCreateDefaultConfig();
-			if (!("ready".equals(config.getString("state")))) {
-				HttpUtilities.respond(response, "error", "Job not ready");
-				return;
-			}
-
-			String format = request.getParameter("format");
-			JSONObject optionObj = ParsingUtilities
-					.evaluateJsonStringToObject(request.getParameter("options"));
-
-			List<Exception> exceptions = new LinkedList<Exception>();
-			String urlpattern =parameters.getProperty("urlpattern");
-			JSONUtilities.safePut(job.config, "urlpattern", urlpattern);
-			long projectID=ImportingUtilities.createProject(job, format, optionObj,exceptions, true);
-//			ProjectMetadata pm = ProjectManager.singleton.getProjectMetadata(projectID);
-//			pm.getPreferenceStore().put("urlpattern", request.getParameter("urlpattern"));
-//			ProjectManager.singleton.ensureProjectSaved(projectID);			
-			
-			
-			HttpUtilities.respond(response, "ok", "done");
-		} catch (JSONException e) {
-			throw new ServletException(e);
-		}
-	}
+	
 
 }

@@ -43,14 +43,11 @@ function init() {
   // Packages.java.lang.System.err.println(module.getMountPoint());
 	var RefineServlet = Packages.com.google.refine.RefineServlet;
   // Script files to inject into /project page
-  ClientSideResourceManager.addPaths(
+ClientSideResourceManager.addPaths(
     "project/scripts",
     module,
     [
-      "scripts/project-injection.js",
-      "scripts/digitlaliser-onload.js",
-      "scripts/menu-bar-extensions.js"
-      
+      "scripts/digitaliser-project-setup.js"
     ]
   );
 
@@ -58,8 +55,8 @@ function init() {
 		    "index/scripts",
 		    module,
 		    [
-		     	"scripts/index/importing-controller.js",
-		     	"scripts/index/digitaliser-source-ui.js"
+		     	"scripts/index/source.js",
+		     	"scripts/index/digitaliser-importing-controller.js"
 		     	
 		    ]
  );
@@ -68,16 +65,14 @@ function init() {
     "project/styles",
     module,
     [
-      "styles/importing-controller.less"
+      "styles/project-injection.less"
     ]
   );
-  RefineServlet.registerCommand(module, "digitaliser-operations", new Packages.com.google.refine.digitaliser.commands.DigitaliserOperationsCommand());
-  
- //from gdata
-//Register importer and exporter
+  RefineServlet.registerCommand(module, "digitaliser-save-metadata", new Packages.com.google.refine.digitaliser.commands.SaveMetadataCommand());
+  RefineServlet.registerCommand(module, "digitaliser-get-metadata", new Packages.com.google.refine.digitaliser.commands.GetMetadataCommand());
+  RefineServlet.registerCommand(module, "digitaliser-apply-column-operations", new Packages.com.google.refine.digitaliser.commands.ApplyDigitaliserColumnOperationsCommand());
+ 
   var IM = Packages.com.google.refine.importing.ImportingManager;
-  //IM.registerUrlRewriter(new Packages.com.google.refine.extension.gdata.GDataUrlRewriter())
-  //IM.registerUrlRewriter(new Packages.com.google.refine.extension.gdata.FusionTablesUrlRewriter())
   
   IM.registerController(
     module,
